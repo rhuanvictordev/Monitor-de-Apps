@@ -148,7 +148,7 @@ namespace MonitorDeApps
                     };
 
                     Process.Start(psi);
-                    dataGridView1.Rows.Add(programa.Name,programa.ExePath,"Iniciar", "Fechado", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                    dataGridView1.Rows.Add(programa.Name,programa.ExePath,"Iniciar", "Fechado", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"), $"{programa.CheckIntervalSeconds} seg");
                 }
             }
         }
