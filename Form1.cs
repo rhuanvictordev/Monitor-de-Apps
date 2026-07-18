@@ -21,27 +21,18 @@ namespace MonitorDeApps
     {
         public List<Programa> listaProgramas;
         public GestorDeArquivos _gestorDeArquivos;
-        public List<String> programasIniciando = new List<string>();
-
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        const int SW_SHOWMINIMIZED = 2;
-
+        
         public Form1(GestorDeArquivos gest)
         {
             InitializeComponent();
             _gestorDeArquivos = gest;
 
             if (_gestorDeArquivos.JsonExiste())
-            {
                 listaProgramas = _gestorDeArquivos.ObterProgramas();
-            }
 
             notifyIcon1.ContextMenuStrip = contextMenuStrip1;
-
-            ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
+            
             timer1.Interval = 1000;
             timer1.Start();
         }
@@ -49,6 +40,7 @@ namespace MonitorDeApps
         private void Form1_Load(object sender, EventArgs e)
         {
             notifyIcon1.Visible = true;
+            dataGridView1.Font = new Font(dataGridView1.Font.FontFamily, 7);
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -76,6 +68,7 @@ namespace MonitorDeApps
                     continue;
                 }
 
+                dataGridView1.Rows.Add(programa.Name, programa.ExePath, "Verificar", "-", DateTime.Now.ToString("dd-MM-yy HH:mm:ss"), $"{programa.CheckIntervalSeconds} seg");
                 programa.VerifiedAt = DateTime.Now;
 
                 Debug.WriteLine("--------------------------------");
@@ -101,14 +94,16 @@ namespace MonitorDeApps
 
                     Debug.WriteLine($"Quantidade encontrada: {processos.Length}");
 
-                    if (processos.Length > programa.MaxProcessQuantity)
+                    
+
+                    if (processos.Count(p => p.MainWindowHandle != IntPtr.Zero) > programa.MaxProcessQuantity)
                     {
                         Debug.WriteLine($"Encerrando processos do programa: {programa.ExePath}");
                         foreach (var processo in processos)
                         {
                             processo.CloseMainWindow();
                         }
-                        Thread.Sleep(5000);
+                        dataGridView1.Rows.Add(programa.Name, programa.ExePath, "Fechar", $"{processos.Length} Encontrados",DateTime.Now.ToString("dd-MM-yy HH:mm:ss"), $"{programa.CheckIntervalSeconds} seg");
                         return;
                     }
                     
@@ -153,6 +148,7 @@ namespace MonitorDeApps
                     };
 
                     Process.Start(psi);
+                    dataGridView1.Rows.Add(programa.Name,programa.ExePath,"Iniciar", "Fechado", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
                 }
             }
         }
@@ -166,6 +162,36 @@ namespace MonitorDeApps
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void logsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.Visible = true;
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            this.Hide();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var opcao = MessageBox.Show("Deseja parar o monitoramento?", "Monitor de Apps", MessageBoxButtons.OKCancel);
+            if (opcao == DialogResult.OK)
+            {
+                Application.Exit();
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Hide();
         }
     }
 }
